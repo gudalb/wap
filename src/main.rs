@@ -63,29 +63,23 @@ fn main() -> Result<()> {
             Err(RecvTimeoutError::Timeout) => {
                 if has_changes {
                     // TODO: improve commit message
-                    let commit_message = String::from("message WIP");
+                    let commit_message = "WIP message";
 
-                    if cfg!(target_os = "linux") {
-                        let commit_command = Command::new("sh")
-                            .arg(format!(
-                                "cd {} && git add -A && git commit -m '{}'",
-                                path.display(),
-                                commit_message
-                            ))
-                            .output()
-                            .expect("Failed to run commit command");
+                    // TODO: dont commit and push if no changes
+                    Command::new("git")
+                        .current_dir(path)
+                        .args(["add", "-A"])
+                        .output()?;
 
-                        println!("commit status: {}", commit_command.status);
+                    Command::new("git")
+                        .current_dir(path)
+                        .args(["commit", "-m", commit_message])
+                        .output()?;
 
-                        let push_command = Command::new("sh")
-                            .arg(format!("cd {} && git push", path.display()))
-                            .output()
-                            .expect("Failed to run commit command");
-
-                        println!("push status: {}", push_command.status);
-                    } else {
-                        println! {"could not commit and push. only linux supported"};
-                    }
+                    Command::new("git")
+                        .current_dir(path)
+                        .args(["push"])
+                        .output()?;
                 } else {
                     println!("no change detected");
                 }
