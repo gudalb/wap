@@ -7,6 +7,8 @@ use std::{
     time::Duration,
 };
 
+const DEFAULT_TIMEOUT_MS: u64 = 5000;
+
 #[derive(Parser)]
 struct Args {
     #[arg(short, long)]
@@ -18,16 +20,19 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
     let path = Path::new(&args.path);
-    let timeoutms;
+    let timeout_ms;
 
     match &args.timeoutms {
         Some(timeout) => {
-            timeoutms = timeout;
-            println!("using timeout: {}", timeoutms);
+            timeout_ms = timeout;
+            println!("using timeout: {}", timeout_ms);
         }
         None => {
-            println!("timeout not supplied, using default 5000ms");
-            timeoutms = &5000;
+            println!(
+                "timeout not supplied, using default {}ms",
+                DEFAULT_TIMEOUT_MS
+            );
+            timeout_ms = &DEFAULT_TIMEOUT_MS;
         }
     };
 
@@ -53,7 +58,7 @@ fn main() -> Result<()> {
     println!("Starting to monitor changes at: {}", path.display());
 
     loop {
-        match rx.recv_timeout(Duration::from_millis(*timeoutms)) {
+        match rx.recv_timeout(Duration::from_millis(*timeout_ms)) {
             Ok(Ok(event)) => match event.kind {
                 EventKind::Create(_) | EventKind::Modify(_) | EventKind::Remove(_) => {
                     has_changes = true;
