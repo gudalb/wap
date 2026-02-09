@@ -3,6 +3,7 @@ use notify::{Event, EventKind, Result, Watcher};
 use std::{
     path::Path,
     process::Command,
+    string,
     sync::mpsc::{self, RecvTimeoutError},
     time::Duration,
 };
@@ -52,7 +53,9 @@ fn main() -> Result<()> {
     let (tx, rx) = mpsc::channel::<Result<Event>>();
     let mut watcher = notify::recommended_watcher(tx)?;
     watcher.watch(path, notify::RecursiveMode::Recursive)?;
-    watcher.unwatch(&path.join(".git"))?;
+
+    // unwatch does not work on macos, event filtering based on path?
+    // watcher.unwatch(&path.join(".git"))?;
 
     let mut has_changes = false;
 
@@ -63,6 +66,19 @@ fn main() -> Result<()> {
             Ok(Ok(event)) => match event.kind {
                 EventKind::Create(_) | EventKind::Modify(_) | EventKind::Remove(_) => {
                     has_changes = true;
+                    for ele in event.paths.iter() {
+                        let res = ele.to_str();
+                        match res {
+                            Some(res) => {
+                                println!("{}", res);
+                                if (res.contains(".git")) {
+                                    has_changes = false
+                                }
+                            }
+                            _ => {}
+                        }
+                        println!()
+                    }
                 }
                 _ => {}
             },
