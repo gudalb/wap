@@ -1,0 +1,11 @@
+[Unit]
+Description=Watch and Push
+After=network.target
+
+[Service]
+ExecStart={WAP_BINARY_PATH} --path {REPO_PATH}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
