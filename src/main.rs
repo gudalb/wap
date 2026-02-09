@@ -52,6 +52,7 @@ fn main() -> Result<()> {
     let (tx, rx) = mpsc::channel::<Result<Event>>();
     let mut watcher = notify::recommended_watcher(tx)?;
     watcher.watch(path, notify::RecursiveMode::Recursive)?;
+    watcher.unwatch(&path.join(".git"))?;
 
     let mut has_changes = false;
 
@@ -68,23 +69,23 @@ fn main() -> Result<()> {
             Err(RecvTimeoutError::Timeout) => {
                 if has_changes {
                     // TODO: improve commit message
+                    println!("change detected, pushing");
                     let commit_message = "WIP message";
 
-                    // TODO: dont commit and push if no changes
                     Command::new("git")
                         .current_dir(path)
                         .args(["add", "-A"])
-                        .output()?;
+                        .status()?;
 
                     Command::new("git")
                         .current_dir(path)
                         .args(["commit", "-m", commit_message])
-                        .output()?;
+                        .status()?;
 
                     Command::new("git")
                         .current_dir(path)
                         .args(["push"])
-                        .output()?;
+                        .status()?;
                 } else {
                     println!("no change detected");
                 }
