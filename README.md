@@ -12,7 +12,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now wap
 ```
 
-## Install as launchd service (macOS)
+## Install as launchd service (macOS) WIP - currently broken
 
 ```bash
 cargo build --release
